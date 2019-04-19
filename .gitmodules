@@ -1,0 +1,3 @@
+[submodule "public/apiDocGenerator"]
+	path = public/apiDocGenerator
+	url = git@gitlab.feiernet.com:root/apiDocGenerator.git
