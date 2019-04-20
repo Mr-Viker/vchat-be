@@ -154,10 +154,32 @@ class UserController extends Controller
 				return error('01', '未找到该用户');
 			}
 			// 是否关注了该用户
-			$user->is_noticer = Noticer::where(['from_uid' => $req->userInfo->id, 'to_uid' => $user->id])->count();
+			$user->is_contact = Contact::where(['from_uid' => $req->userInfo->id, 'to_uid' => $user->id])->count();
 		}
-		$user->fans_num = Noticer::where('to_uid', $user->id)->count();
-		$user->noticer_num = Noticer::where('from_uid', $user->id)->count();
+		return api('00', $user);
+	}
+
+
+	/**
+	 * @api
+	 * @name    搜索用户
+	 * @url     /api/user/search
+	 * @method  POST
+	 * @desc
+	 * @param   search       string  [必填]  VChat唯一标识ID/手机号
+	 */
+	public function search(Request $req) {
+		$form = $req->all();
+		// 验证
+		$valid = CommonValidator::handle($form, 'search');
+		if (true !== $valid) {
+			return error('01', $valid->first());
+		}
+		// 查找用户
+		$user = User::where('phone', $form['search'])->orWhere('vchat_id', $form['search'])->first();
+		if (empty($user)) {
+			return error('01', '该用户不存在');
+		}
 		return api('00', $user);
 	}
 
@@ -168,33 +190,41 @@ class UserController extends Controller
 	 * @url     /api/user/editUserInfo
 	 * @method  POST
 	 * @desc    编辑用户
-	 * @param   avatar          object  [选填]  上传文件名
+	 * @param   avatar          object  [选填]  头像
 	 * @param   username        string  [选填]  昵称
 	 * @param   sex             string  [选填]  性别 0男 1女
-	 * @param   desc            string  [选填]  个性签名
+	 * @param   signature       string  [选填]  个性签名
+	 * @param   area            string  [选填]  地区
+	 * @param   momentBgi       string  [选填]  朋友圈背景图
 	 */
 	public function editUserInfo(Request $req) {
 		$user = User::find($req->userInfo->id);
-		$file = $req->file('avatar');
+		$avatar = $req->file('avatar');
+		$momentBgi = $req->file('momentBgi');
 		$form = $req->all();
 		$hasChange = false;
 
-		// 文件
-		if (!empty($file)) {
-			if ($file->isValid()) {
-				$ext = $file->getClientOriginalExtension(); //文件拓展名
-				$tempPath = $file->getRealPath(); //临时文件的绝对路径
-				$fileName = date('YmdHis') . uniqid() . '.' . $ext; //新文件名
-				$bool = Storage::disk('admin')->put($fileName, file_get_contents($tempPath)); //传成功返回bool值
-				if (!$bool) {
-					return error('500', '上传头像失败');
-				}
-				$user->avatar = $fileName;
-				if ($user->save()) {
-					return api('00');
-				}
-			} else {
-				return error('01', '文件错误');
+		// 头像
+		if (!empty($avatar)) {
+			$fileName = saveFile($avatar);
+			if (!$fileName) {
+				return error('500', '上传头像失败');
+			}
+			$user->avatar = $fileName;
+			if ($user->save()) {
+				return api('00');
+			}
+		}
+
+		// 朋友圈背景图
+		if (!empty($momentBgi)) {
+			$file = saveFile($momentBgi);
+			if (!$file) {
+				return error('500', '上传朋友圈背景图失败');
+			}
+			$user->moment_bgi = $file;
+			if ($user->save()) {
+				return api('00');
 			}
 		}
 
@@ -221,12 +251,22 @@ class UserController extends Controller
 			}
 		}
 
+		// 地区
+		if (!empty($form['area'])) {
+			$user->area = $form['area'];
+			if ($user->save()) {
+				$hasChange = true;
+			} else {
+				$hasChange = false;
+			}
+		}
+
 		// 个性签名
-		if (isset($form['desc'])) {
-			if (strlen($form['desc']) > 50) {
+		if (isset($form['signature'])) {
+			if (strlen($form['signature']) > 50) {
 				return error('01', '个性签名不能超过50个字');
 			}
-			$user->desc = $form['desc'];
+			$user->signature = $form['signature'];
 			if ($user->save()) {
 				$hasChange = true;
 			} else {

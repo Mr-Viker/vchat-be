@@ -6,7 +6,9 @@
 
 
 // 通用接口返回方法
-if (!function_exists('api')) { 
+use Illuminate\Support\Facades\Storage;
+
+if (!function_exists('api')) {
   function api($code = '00', $data = [], $addition = [], $msg = '') { 
     $msgs = ['00' => '操作成功', '01' => '验证不通过', '300' => '第三方错误', '500' => '操作失败'];
     $msg = $msg ?: $msgs[$code];
@@ -67,6 +69,25 @@ if (!function_exists('getVChatID')) {
 		$from = array_merge(range(0, 9), range('a', 'z'), range('A', 'Z'));
 		$str = substr(str_shuffle(implode('', $from)), 0, 20);
 		return 'vcid_' . $str;
+	}
+}
+
+
+// 存储图片
+if (!function_exists('saveFile')) {
+	function saveFile($file) {
+		if ($file->isValid()) {
+			$ext = $file->getClientOriginalExtension(); //文件拓展名
+			$tempPath = $file->getRealPath(); //临时文件的绝对路径
+			$fileName = date('YmdHis') . uniqid() . '.' . $ext; //新文件名
+			$bool = Storage::disk('admin')->put($fileName, file_get_contents($tempPath)); //传成功返回bool值
+			if (!$bool) {
+				return false;
+			}
+			return $fileName;
+		} else {
+			return false;
+		}
 	}
 }
 

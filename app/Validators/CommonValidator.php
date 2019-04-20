@@ -13,6 +13,7 @@ class CommonValidator extends BaseValidator {
     'oldPassword' => ['required', 'min:6', 'max:16'],
     'smsCode' => ['required', 'alpha_num'],
 	  'username' => ['required', 'min:1', 'max:10'],
+	  'search' => ['required'],
 
     'type' => ['required', 'numeric'],
     'id' => ['required', 'numeric'],
@@ -41,6 +42,8 @@ class CommonValidator extends BaseValidator {
 	  'username.required' => '用户名不能为空',
 	  'username.min' => '用户名长度必须在6位以上',
 	  'username.max' => '用户名长度必须在16位以下',
+	  'search.required' => '查询条件不能为空',
+
 
     'type.required' => '类型不能为空',
     'type.numeric' => '类型错误',
@@ -66,6 +69,7 @@ class CommonValidator extends BaseValidator {
     'login' => ['phone', 'password'],
     'forgetPassword' => ['phone', 'smsCode', 'password'],
     'editPassword' => ['oldPassword', 'password'],
+	  'search' => ['search'],
 
     'sms' => ['phone', 'type'],
 

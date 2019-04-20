@@ -17,4 +17,9 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
 		'password',
 	];
 
+	// 通讯录
+	public function contact() {
+		return $this->belongsToMany(User::class, 'contact', 'from_uid', 'to_uid');
+	}
+
 }
