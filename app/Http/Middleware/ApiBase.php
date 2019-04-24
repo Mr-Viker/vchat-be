@@ -9,9 +9,13 @@ class ApiBase {
   public function handle($req, \Closure $next) {
     $jwt = $req->header('token');
     
-    if (isset($jwt) && $jwt != 'null') {
+    if (!empty($jwt) && $jwt != 'null') {
       // 解密token并将用户信息赋值给$req->userInfo
-	    $req->userInfo = JWTAuth::parseToken("bearer", "token")->authenticate();
+	    try {
+		    $req->userInfo = JWTAuth::parseToken("bearer", "token")->authenticate();
+	    } catch(\Exception $e) {
+	    	return error('500', $e->getMessage());
+	    }
     }
 
     return $next($req);

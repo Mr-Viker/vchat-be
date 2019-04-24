@@ -17,6 +17,9 @@ class CommonValidator extends BaseValidator {
 
     'type' => ['required', 'numeric'],
     'id' => ['required', 'numeric'],
+    'clientId' => ['required'],
+	  'status' => ['required', 'numeric'],
+	  'content' => ['required'],
 
     // pay
     'payType' => ['required', 'numeric'],
@@ -49,6 +52,11 @@ class CommonValidator extends BaseValidator {
     'type.numeric' => '类型错误',
     'id.required' => 'ID不能为空',
     'id.numeric' => 'ID格式错误',
+	  'clientId.required' => 'clientId不能为空',
+	  'status.required' => '状态不能为空',
+	  'status.numeric' => '状态格式错误',
+	  'content.required' => '内容不能为空',
+
 
     // pay
     'payType.required' => '类型不能为空',
@@ -74,6 +82,9 @@ class CommonValidator extends BaseValidator {
     'sms' => ['phone', 'type'],
 
     'id' => ['id'],
+    'clientId' => ['clientId'],
+	  'edit' => ['id', 'status'],
+	  'msg' => ['id', 'content'],
 
     // pay
     'pay' => ['payType', 'money'],

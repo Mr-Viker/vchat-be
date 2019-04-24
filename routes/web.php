@@ -28,8 +28,6 @@ Route::group(['namespace' => 'Api', 'prefix' => 'api', 'middleware' => ["CORS", 
 	Route::any('/user/login', 'UserController@login');             // 登录
 	Route::any('/user/forgetPassword', 'UserController@forgetPassword'); // 忘记密码
 
-	Route::any('/comment/list', 'CommentController@list');            // 评论列表
-
 
 
 	/**
@@ -37,10 +35,24 @@ Route::group(['namespace' => 'Api', 'prefix' => 'api', 'middleware' => ["CORS", 
 	 */
 	Route::group(['middleware' => ['ApiAuth']], function () {
 
-		Route::any('/user/userInfo', 'UserController@userInfo');          // 用户信息
+		Route::any('/user/info', 'UserController@info');          // 用户信息
 		Route::any('/user/editUserInfo', 'UserController@editUserInfo');  // 编辑用户信息
 		Route::any('/user/editPassword', 'UserController@editPassword');  // 修改密码
 		Route::any('/user/logout', 'UserController@logout');              // 退出登录
+
+		Route::any('/contact/list', 'ContactController@list');            // 通讯录列表
+		Route::any('/contact/addList', 'ContactController@addList');      // 添加通讯录好友请求列表
+		Route::any('/contact/getNewAddContactNum', 'ContactController@getNewAddContactNum');            // 新添加通讯录好友请求数量
+		Route::any('/contact/add', 'ContactController@add');              // 添加通讯录好友
+		Route::any('/contact/readAddContact', 'ContactController@readAddContact');              // 已阅新添加通讯录好友请求消息
+		Route::any('/contact/editAddContact', 'ContactController@editAddContact');              // 修改添加通讯录好友状态
+		Route::any('/contact/del', 'ContactController@del');              // 删除通讯录好友
+
+		Route::any('/chat/bindUid', 'ChatController@bindUid');        // 绑定用户ID和客户端ID
+		Route::any('/chat/send', 'ChatController@send');        // 发送消息
+		Route::any('/chat/getNewChatNum', 'ChatController@getNewChatNum');        // 获取最新未读消息数
+		Route::any('/chat/getNewChat', 'ChatController@getNewChat');        // 获取最新未读消息
+		Route::any('/chat/readChat', 'ChatController@readChat');        // 已阅新聊天消息
 
 	});
 });
