@@ -20,6 +20,7 @@ class CreateChatTable extends Migration
             $table->text('content')->comment('内容');
             $table->tinyInteger('type')->index()->default(0)->comment('类型 0用户-用户 1用户-群组 2群组-用户');
             $table->tinyInteger('status')->index()->default(0)->comment('发送状态 0未成功 1成功');
+            $table->tinyInteger('is_read')->index()->default(0)->comment('查看状态 0未阅 1已阅');
             $table->timestamps();
         });
     }

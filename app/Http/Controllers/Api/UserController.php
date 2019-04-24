@@ -10,7 +10,6 @@ use App\Models\User;
 use App\Validators\CommonValidator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Storage;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
 class UserController extends Controller
@@ -137,12 +136,12 @@ class UserController extends Controller
 	/**
 	 * @api
 	 * @name    用户信息
-	 * @url     /api/user/userInfo
+	 * @url     /api/user/info
 	 * @method  POST
 	 * @desc    用户信息
 	 * @param   id          string  [选填]  用户ID，不传则表示获取自己的用户信息
 	 */
-	public function userInfo(Request $req) {
+	public function info(Request $req) {
 		$form = $req->all();
 		// 如果没传ID则获取自己的用户信息
 		if (empty($form['id'])) {
