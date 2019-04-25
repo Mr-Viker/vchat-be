@@ -19,6 +19,7 @@ class CreateAddContactTable extends Migration
             $table->integer('to_uid')->index()->comment('添加好友接收用户ID');
             $table->string('content')->comment('附加内容')->nullable();
             $table->tinyInteger('status')->index()->default(0)->comment('状态 0已发送 1已添加 2已拒绝');
+            $table->tinyInteger('is_read')->index()->default(0)->comment('查看状态 0未阅 1已阅');
             $table->timestamps();
         });
     }
