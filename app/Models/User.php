@@ -19,12 +19,12 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
 
 	// 通讯录
 	public function contact() {
-		return $this->belongsToMany(User::class, 'contact', 'from_uid', 'to_uid');
+		return $this->belongsToMany(User::class, 'contact', 'from_uid', 'to_uid')->withTimestamps();
 	}
 
 	// 添加通讯录好友
 	public function addContact() {
-		return $this->belongsToMany(User::class, 'add_contact', 'to_uid', 'from_uid')->withPivot('content');
+		return $this->belongsToMany(User::class, 'add_contact', 'to_uid', 'from_uid')->withPivot('content', 'status')->withTimestamps();
 	}
 
 	// 聊天记录
