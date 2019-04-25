@@ -24,8 +24,6 @@ class ContactController {
 	 * @url     /api/contact/list
 	 * @method  POST
 	 * @desc
-	 * @param   page     string  [选填]  当前页数 不传默认1
-	 * @param   pageNum  string  [选填]  每页显示数量 不传默认15
 	 */
 	public function list(Request $req) {
 		$form = $req->all();
@@ -36,11 +34,11 @@ class ContactController {
 		}
 
 		$user = User::find($req->userInfo->id);
-		$paginate = $user->contact()->orderBy('username', 'asc')->paginate($req->pageNum);
-		$data = $paginate->items();
-		$addition = getAddition($paginate);
+		$data = $user->contact()->orderBy('username', 'asc')->get();
+//		$data = $paginate->items();
+//		$addition = getAddition($paginate);
 
-		return api('00', $data, $addition);
+		return api('00', $data);
 	}
 
 
@@ -62,7 +60,7 @@ class ContactController {
 		}
 
 		$user = User::find($req->userInfo->id);
-		$paginate = $user->addContact()->orderBy('id', 'desc')->paginate($req->pageNum);
+		$paginate = $user->addContact()->orderBy('add_contact.created_at', 'desc')->paginate($req->pageNum);
 		$data = $paginate->items();
 		$addition = getAddition($paginate);
 
@@ -110,9 +108,14 @@ class ContactController {
 				return error('01', '对方已经是你的好友了哦');
 			}
 
-			$addContact = new AddContact();
-			$addContact->from_uid = $req->userInfo->id;
-			$addContact->to_uid = $form['id'];
+			// 查询是否已发送过添加请求了
+			$addContact = AddContact::where(['from_uid' => $req->userInfo->id, 'to_uid' => $form['id']])->first();
+			if (empty($addContact)) {
+				$addContact = new AddContact();
+				$addContact->from_uid = $req->userInfo->id;
+				$addContact->to_uid = $form['id'];
+			}
+			$addContact->is_read = 0;
 			empty($form['content']) ?: $addContact->content = $form['content'];
 
 			// 发送一条推送给对方用户
@@ -134,7 +137,7 @@ class ContactController {
 	 * @method  POST
 	 * @desc
 	 */
-	public function read(Request $req) {
+	public function readAddContact(Request $req) {
 		if (AddContact::where(['to_uid' => $req->userInfo->id, 'is_read' => 0])->update(['is_read' => 1])) {
 			return api('00');
 		}
@@ -148,7 +151,7 @@ class ContactController {
 	 * @url     /api/contact/editAddContact
 	 * @method  POST
 	 * @desc
-	 * @param   id          string  [必填]  要修改的添加通讯录消息ID
+	 * @param   id          string  [必填]  请求添加通讯录好友的用户ID
 	 * @param   status      string  [必填]  状态：1同意  2拒绝
 	 */
 	public function editAddContact(Request $req) {
@@ -159,13 +162,14 @@ class ContactController {
 			return error('01', $valid->first());
 		}
 		// 查找是否有该消息记录
-		$addContact = Contact::where(['id' => $form['id'], 'to_uid' => $req->userInfo->id, 'status' => 0])->first();
+		$addContact = AddContact::where(['from_uid' => $form['id'], 'to_uid' => $req->userInfo->id, 'status' => 0])->first();
 		if (empty($addContact)) {
 			return error('01', '未找到该添加好友请求');
 		}
 
 		// 更新状态
-		if ($addContact->update(['status' => $form['status']])) {
+		$addContact->status = $form['status'];
+		if ($addContact->update()) {
 			// 如果是同意则要新增通讯录好友记录
 			if ($form['status'] == 1) {
 				$contact = new Contact();
