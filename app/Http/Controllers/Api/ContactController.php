@@ -116,6 +116,7 @@ class ContactController {
 				$addContact->to_uid = $form['id'];
 			}
 			$addContact->is_read = 0;
+			$addContact->status = 0;
 			empty($form['content']) ?: $addContact->content = $form['content'];
 
 			// 发送一条推送给对方用户

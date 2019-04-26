@@ -77,7 +77,7 @@ class CommonValidator extends BaseValidator {
     'login' => ['phone', 'password'],
     'forgetPassword' => ['phone', 'smsCode', 'password'],
     'editPassword' => ['oldPassword', 'password'],
-	  'search' => ['search'],
+	  'search' => ['search', 'page', 'pageNum'],
 
     'sms' => ['phone', 'type'],
 

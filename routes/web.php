@@ -39,6 +39,7 @@ Route::group(['namespace' => 'Api', 'prefix' => 'api', 'middleware' => ["CORS", 
 		Route::any('/user/editUserInfo', 'UserController@editUserInfo');  // 编辑用户信息
 		Route::any('/user/editPassword', 'UserController@editPassword');  // 修改密码
 		Route::any('/user/logout', 'UserController@logout');              // 退出登录
+		Route::any('/user/search', 'UserController@search');              // 搜索用户
 
 		Route::any('/contact/list', 'ContactController@list');            // 通讯录列表
 		Route::any('/contact/addList', 'ContactController@addList');      // 添加通讯录好友请求列表

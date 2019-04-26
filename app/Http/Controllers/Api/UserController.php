@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 
 
 use App\Http\Controllers\Controller;
+use App\Models\Contact;
 use App\Models\Sms;
 use App\Models\User;
 use App\Validators\CommonValidator;
@@ -152,7 +153,7 @@ class UserController extends Controller
 			if (empty($user)) {
 				return error('01', '未找到该用户');
 			}
-			// 是否关注了该用户
+			// 是否是好友
 			$user->is_contact = Contact::where(['from_uid' => $req->userInfo->id, 'to_uid' => $user->id])->count();
 		}
 		return api('00', $user);
@@ -166,6 +167,8 @@ class UserController extends Controller
 	 * @method  POST
 	 * @desc
 	 * @param   search       string  [必填]  VChat唯一标识ID/手机号
+	 * @param   page         string  [选填]  当前页数 不传默认1
+	 * @param   pageNum      string  [选填]  每页显示数量 不传默认15
 	 */
 	public function search(Request $req) {
 		$form = $req->all();
@@ -175,11 +178,11 @@ class UserController extends Controller
 			return error('01', $valid->first());
 		}
 		// 查找用户
-		$user = User::where('phone', $form['search'])->orWhere('vchat_id', $form['search'])->first();
-		if (empty($user)) {
-			return error('01', '该用户不存在');
-		}
-		return api('00', $user);
+		$paginate = User::where('phone', 'like', "{$form['search']}%")->orWhere('vchat_id', 'like', "{$form['search']}%")->paginate($req->pageNum);
+		$data = $paginate->items();
+		$addition = getAddition($paginate);
+
+		return api('00', $data, $addition);
 	}
 
 
