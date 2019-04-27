@@ -6,6 +6,7 @@
 
 
 // 通用接口返回方法
+use App\Models\User;
 use Illuminate\Support\Facades\Storage;
 
 if (!function_exists('api')) {
@@ -92,28 +93,60 @@ if (!function_exists('saveFile')) {
 }
 
 
-// 格式化聊天记录列表
+//格式化聊天列表 只需要获取和每个聊天对象的第一条消息即可
+//去重并根据created_at排序
 if (!function_exists('formatChatList')) {
-  function formatChatList($data) {
-    $newData = array_column($data, Null, 'from_id'); // 以from_id为key的数组
-    $contents = []; // 以from_id为key的内容数组
-    $res = []; //最终结果数组
+  function formatChatList($data)
+  {
+    $res = [];
 
-    foreach ($data as $val) {
-      $contents[$val->from_id][] = ['id' => $val->id, 'msg' => $val->content, 'time' => $val->created_at];
+    foreach ($data as $v) {
+      if (!isset($res[$v['uid']]) || strtotime($res[$v['uid']]['created_at']) < strtotime($v['created_at'])) {
+        $newChatNum = isset($res[$v['uid']]['new_chat_num']) ? $res[$v['uid']]['new_chat_num'] : 0;
+        // 接收的未读消息数
+        if (isset($v['is_read']) && $v['is_read'] == 0 && $v['is_accept'] == 1) {
+          $newChatNum++;
+        }
+        $res[$v['uid']] = $v;
+        $res[$v['uid']]['new_chat_num'] = $newChatNum;
+      }
     }
-
-    foreach ($newData as $key => $item) {
-      unset($item->id);
-      unset($item->content);
-      unset($item->created_at);
-      $item->contents = $contents[$key];
-      $res[] = $item;
+    $res = array_values($res);
+    //根据created_at排序
+    $sortKey = array_column($res, 'created_at');
+    array_multisort($sortKey, SORT_DESC, $res);
+    // 获取用户信息
+    foreach ($res as &$v) {
+      $user = User::select('username', 'avatar')->where('id', $v['uid'])->first()->toArray();
+      $v = array_merge($v, $user);
     }
-
     return $res;
   }
 }
+
+
+// 格式化聊天记录列表
+//if (!function_exists('formatChatList')) {
+//  function formatChatList($data) {
+//    $newData = array_column($data, Null, 'from_id'); // 以from_id为key的数组
+//    $contents = []; // 以from_id为key的内容数组
+//    $res = []; //最终结果数组
+//
+//    foreach ($data as $val) {
+//      $contents[$val->from_id][] = ['id' => $val->id, 'msg' => $val->content, 'time' => $val->created_at];
+//    }
+//
+//    foreach ($newData as $key => $item) {
+//      unset($item->id);
+//      unset($item->content);
+//      unset($item->created_at);
+//      $item->contents = $contents[$key];
+//      $res[] = $item;
+//    }
+//
+//    return $res;
+//  }
+//}
 
 
 // 获取数据总计的js

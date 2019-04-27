@@ -16,8 +16,8 @@ use Faker\Generator as Faker;
 
 $factory->define(App\Models\Chat::class, function (Faker $faker) {
 	return [
-		'from_id' => 1,
-		'to_id' => rand(2, 50),
+		'from_id' => rand(2, 50),
+		'to_id' => 1,
     'content' => $faker->sentence,
 		'status' => 1,
 	];

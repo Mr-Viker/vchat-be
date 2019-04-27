@@ -59,6 +59,19 @@ class ChatController {
     }
 
     // 按时间顺序获取和聊过天的用户的记录
+    $acceptData = Chat::select('from_id as uid', 'content', 'type', 'is_read', 'created_at')->where('to_id', $req->userInfo->id)->orderBy('created_at', 'desc')->get()->map(function($item) {
+      $item->is_accept = 1;
+      return $item;
+    })->toArray();
+    $sendData = Chat::select('to_id as uid', 'content', 'type', 'is_read', 'created_at')->where('from_id', $req->userInfo->id)->orderBy('created_at', 'desc')->get()->map(function($item) {
+      $item->is_accept = 0;
+      return $item;
+    })->toArray();
+    $data = array_merge($acceptData, $sendData);
+
+    // 格式化聊天列表 注：只有is_accept == 1 && is_read == 0 才表示是自己的未读消息
+    $res = formatChatList($data);
+    return api('00', $res);
   }
 
 
