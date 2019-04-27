@@ -92,6 +92,30 @@ if (!function_exists('saveFile')) {
 }
 
 
+// 格式化聊天记录列表
+if (!function_exists('formatChatList')) {
+  function formatChatList($data) {
+    $newData = array_column($data, Null, 'from_id'); // 以from_id为key的数组
+    $contents = []; // 以from_id为key的内容数组
+    $res = []; //最终结果数组
+
+    foreach ($data as $val) {
+      $contents[$val->from_id][] = ['id' => $val->id, 'msg' => $val->content, 'time' => $val->created_at];
+    }
+
+    foreach ($newData as $key => $item) {
+      unset($item->id);
+      unset($item->content);
+      unset($item->created_at);
+      $item->contents = $contents[$key];
+      $res[] = $item;
+    }
+
+    return $res;
+  }
+}
+
+
 // 获取数据总计的js
 if (!function_exists("get_total_js")) {
   function get_total_js() {
