@@ -75,7 +75,7 @@ class ChatController {
 
 	/**
 	 * @api
-	 * @name    聊天列表
+	 * @name    聊天记录
 	 * @url     /api/chat/record
 	 * @method  POST
 	 * @desc
@@ -97,37 +97,6 @@ class ChatController {
 		$addition = getAddition($paginate);
 		return api('00', $data, $addition);
 	}
-
-
-//  /**
-//   * @api
-//   * @name    获取最新未读消息
-//   * @url     /api/chat/getNewChat
-//   * @method  POST
-//   * @desc
-//   */
-//  public function getNewChat(Request $req) {
-//    DB::beginTransaction();
-//    try {
-//      // 将未发送成功的消息更新为发送成功状态
-//      Chat::where(['to_id' => $req->userInfo->id, 'status' => 0, 'type' => 0])->update(['status' => 1]);
-//
-//      $data = DB::table('chat')
-//        ->join('user', 'chat.from_id', '=', 'user.id')
-//        ->select('chat.id', 'chat.from_id', 'user.username', 'user.avatar', 'chat.content', 'chat.type', 'chat.created_at')
-//        ->where(['chat.to_id' => $req->userInfo->id, 'chat.is_read' => 0, 'chat.type' => 0])
-//        ->orderBy('chat.created_at', 'desc')
-//        ->get()->toArray();
-//
-//      $res = formatChatList($data);
-//
-//      DB::commit();
-//      return api('00', $res);
-//    } catch(\Exception $e) {
-//      DB::rollBack();
-//      return error('500', $e->getMessage());
-//    }
-//  }
 
 
 	/**
@@ -162,7 +131,7 @@ class ChatController {
 				$data = ['username' => $req->userInfo->username, 'avatar' => $req->userInfo->avatar, 'uid' => $req->userInfo->id, 'content' => $chat->content, 'created_at' => $chat->created_at->toDateTimeString(), 'is_accept' => 1, 'is_read' => 0, 'new_chat_num' => 1, 'type' => 0];
 				Gateway::sendToUid($form['id'], json_encode($data));
 			}
-			return api('00');
+			return api('00', $chat);
 		}
 		return error('500');
 	}
