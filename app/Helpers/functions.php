@@ -96,31 +96,39 @@ if (!function_exists('saveFile')) {
 //格式化聊天列表 只需要获取和每个聊天对象的第一条消息即可
 //去重并根据created_at排序
 if (!function_exists('formatChatList')) {
-  function formatChatList($data)
+  function formatChatList($data, $id)
   {
     $res = [];
+    $result = [];
 
     foreach ($data as $v) {
-      if (!isset($res[$v['uid']]) || strtotime($res[$v['uid']]['created_at']) < strtotime($v['created_at'])) {
-        $newChatNum = isset($res[$v['uid']]['new_chat_num']) ? $res[$v['uid']]['new_chat_num'] : 0;
-        // 接收的未读消息数
-        if (isset($v['is_read']) && $v['is_read'] == 0 && $v['is_accept'] == 1) {
-          $newChatNum++;
-        }
-        $res[$v['uid']] = $v;
-        $res[$v['uid']]['new_chat_num'] = $newChatNum;
+    	$newChatNum = isset($res[$v['uid']]['new_chat_num']) ? $res[$v['uid']]['new_chat_num'] : 0;
+      // 接收的未读消息数 如果is_accept == 1 && $v['is_read'] == 0 表示是自己接收的未读消息数
+      if ($v['is_accept'] == 1 && $v['is_read'] == 0) {
+        $newChatNum++;
       }
+      // 如果$res没有该uid对应的聊天记录或者当前的聊天记录比$res['uid']对应的聊天记录更新 则将当前的聊天记录赋值给$res
+      if (!isset($res[$v['uid']]) || strtotime($res[$v['uid']]['created_at']) < strtotime($v['created_at'])) {
+        $res[$v['uid']] = $v;
+      }
+      $res[$v['uid']]['new_chat_num'] = $newChatNum;
     }
+
     $res = array_values($res);
     //根据created_at排序
     $sortKey = array_column($res, 'created_at');
     array_multisort($sortKey, SORT_DESC, $res);
-    // 获取用户信息
-    foreach ($res as &$v) {
+
+    foreach ($res as $k => $v) {
+      // 获取用户信息
       $user = User::select('username', 'avatar')->where('id', $v['uid'])->first()->toArray();
-      $v = array_merge($v, $user);
+      $res[$k] = array_merge($v, $user);
+      // 如果对方是自己的好友 才显示该聊天记录
+	    if (\App\Models\Contact::where(['from_uid' => $id, 'to_uid' => $v['uid']])->count() > 0) {
+		    $result[] = $res[$k];
+	    }
     }
-    return $res;
+    return $result;
   }
 }
 

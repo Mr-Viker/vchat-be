@@ -86,6 +86,10 @@ class CommonValidator extends BaseValidator {
 	  'edit' => ['id', 'status'],
 	  'msg' => ['id', 'content'],
 
+	  // chat
+	  'record' => ['id', 'page', 'pageNum'],
+
+
     // pay
     'pay' => ['payType', 'money'],
 

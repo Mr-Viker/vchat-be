@@ -10,6 +10,7 @@ namespace App\Http\Controllers\Api;
 
 
 use App\Models\AddContact;
+use App\Models\Chat;
 use App\Models\Contact;
 use App\Models\User;
 use App\Validators\CommonValidator;
@@ -185,9 +186,21 @@ class ContactController {
 					$contact1->save();
 				}
 
-				//发送一条消息给对方 告知对方已同意
-				$data = ['type' => 'agreeAddContact', 'data' => ['id' => $addContact->from_uid]];
+				// 新增一条添加好友成功的聊天记录
+				$chat = new Chat();
+				$chat->from_id = $req->userInfo->id;
+				$chat->to_id = $addContact->from_uid;
+				$chat->content = '我们已经是好友了，现在可以开始聊天了';
+				$chat->status = 1;
+				$chat->save();
+
+				$fromUser = User::select('username', 'avatar')->where('id', $chat->to_id)->first();
+
+				//发送一条消息给对方 告知对方我已同意
+				$data = ['type' => 'agreeAddContact', 'data' => ['uid' => $chat->from_id, 'is_accept' => 1, 'content' => $chat->content, 'username' => $req->userInfo->username, 'avatar' => $req->userInfo->avatar, 'is_read' => 0, 'new_chat_num' => 1, 'type' => 0, 'created_at' => $chat->created_at->toDateTimeString()]];
 				Gateway::sendToUid($addContact->from_uid, json_encode($data));
+
+				return api('00', ['uid' => $chat->to_id, 'is_accept' => 0, 'content' => $chat->content, 'username' => $fromUser->username, 'avatar' => $fromUser->avatar, 'is_read' => 1, 'type' => 0, 'created_at' => $chat->created_at->toDateTimeString()]);
 			}
 			return api('00');
 		}

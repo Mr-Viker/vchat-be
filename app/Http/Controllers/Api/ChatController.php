@@ -44,11 +44,9 @@ class ChatController {
   /**
    * @api
    * @name    聊天列表
-   * @url     /api/contact/list
+   * @url     /api/chat/list
    * @method  POST
    * @desc
-   * @param   page     string  [选填]  当前页数 不传默认1
-   * @param   pageNum  string  [选填]  每页显示数量 不传默认15
    */
   public function list(Request $req) {
     $form = $req->all();
@@ -70,41 +68,66 @@ class ChatController {
     $data = array_merge($acceptData, $sendData);
 
     // 格式化聊天列表 注：只有is_accept == 1 && is_read == 0 才表示是自己的未读消息
-    $res = formatChatList($data);
+    $res = formatChatList($data, $req->userInfo->id);
     return api('00', $res);
   }
 
 
-  /**
-   * @api
-   * @name    获取最新未读消息
-   * @url     /api/chat/getNewChat
-   * @method  POST
-   * @desc
-   */
-  public function getNewChat(Request $req) {
-    DB::beginTransaction();
-    try {
-      // 将未发送成功的消息更新为发送成功状态
-      Chat::where(['to_id' => $req->userInfo->id, 'status' => 0, 'type' => 0])->update(['status' => 1]);
+	/**
+	 * @api
+	 * @name    聊天列表
+	 * @url     /api/chat/record
+	 * @method  POST
+	 * @desc
+	 * @param   id       string  [必填]  聊天对象的用户ID
+	 * @param   page     string  [选填]  当前页数 不传默认1
+	 * @param   pageNum  string  [选填]  每页显示数量 不传默认15
+	 */
+	public function record(Request $req) {
+		$form = $req->all();
+		// 验证
+		$valid = CommonValidator::handle($form, 'record');
+		if (true !== $valid) {
+			return error('01', $valid->first());
+		}
 
-      $data = DB::table('chat')
-        ->join('user', 'chat.from_id', '=', 'user.id')
-        ->select('chat.id', 'chat.from_id', 'user.username', 'user.avatar', 'chat.content', 'chat.type', 'chat.created_at')
-        ->where(['chat.to_id' => $req->userInfo->id, 'chat.is_read' => 0, 'chat.type' => 0])
-        ->orderBy('chat.created_at', 'desc')
-        ->get()->toArray();
+		$temp = Chat::where(['from_id' => $form['id'], 'to_id' => $req->userInfo->id]);
+		$paginate = Chat::where(['from_id' => $req->userInfo->id, 'to_id' => $form['id']])->union($temp)->orderBy('created_at', 'desc')->paginate($req->pageNum);
+		$data = $paginate->items();
+		$addition = getAddition($paginate);
+		return api('00', $data, $addition);
+	}
 
-      $res = formatChatList($data);
 
-      DB::commit();
-      return api('00', $res);
-    } catch(\Exception $e) {
-      DB::rollBack();
-      return error('500', $e->getMessage());
-    }
-//		return error('500');
-  }
+//  /**
+//   * @api
+//   * @name    获取最新未读消息
+//   * @url     /api/chat/getNewChat
+//   * @method  POST
+//   * @desc
+//   */
+//  public function getNewChat(Request $req) {
+//    DB::beginTransaction();
+//    try {
+//      // 将未发送成功的消息更新为发送成功状态
+//      Chat::where(['to_id' => $req->userInfo->id, 'status' => 0, 'type' => 0])->update(['status' => 1]);
+//
+//      $data = DB::table('chat')
+//        ->join('user', 'chat.from_id', '=', 'user.id')
+//        ->select('chat.id', 'chat.from_id', 'user.username', 'user.avatar', 'chat.content', 'chat.type', 'chat.created_at')
+//        ->where(['chat.to_id' => $req->userInfo->id, 'chat.is_read' => 0, 'chat.type' => 0])
+//        ->orderBy('chat.created_at', 'desc')
+//        ->get()->toArray();
+//
+//      $res = formatChatList($data);
+//
+//      DB::commit();
+//      return api('00', $res);
+//    } catch(\Exception $e) {
+//      DB::rollBack();
+//      return error('500', $e->getMessage());
+//    }
+//  }
 
 
 	/**
@@ -113,7 +136,7 @@ class ChatController {
 	 * @url     /api/chat/send
 	 * @method  POST
 	 * @desc
-	 * @param   id          string  [必填]  用户ID
+	 * @param   id          string  [必填]  接收消息的用户ID
 	 * @param   content     string  [必填]  消息内容
 	 * @param   type        string  [选填]  类型 0用户-用户 1用户-群组 2群组-用户 默认0
 	 */
@@ -131,13 +154,14 @@ class ChatController {
 		$chat->to_id = $form['id'];
 		$chat->content = $form['content'];
 		$chat->type = isset($form['type']) ? $form['type'] : 0;
-		// 如果对方在线则发送给对方
-		if (Gateway::isUidOnline($form['id'])) {
-			Gateway::sendToUid($form['id'], json_encode(['type' => 'say', 'content' => $form['content']]));
-			$chat->status = 1;
-		}
+		$chat->status = 1;
 
 		if ($chat->save()) {
+			// 如果对方在线则发送给对方
+			if (Gateway::isUidOnline($form['id'])) {
+				$data = ['username' => $req->userInfo->username, 'avatar' => $req->userInfo->avatar, 'uid' => $req->userInfo->id, 'content' => $chat->content, 'created_at' => $chat->created_at->toDateTimeString(), 'is_accept' => 1, 'is_read' => 0, 'new_chat_num' => 1, 'type' => 0];
+				Gateway::sendToUid($form['id'], json_encode($data));
+			}
 			return api('00');
 		}
 		return error('500');
@@ -152,7 +176,9 @@ class ChatController {
 	 * @desc
 	 */
 	public function getNewChatNum(Request $req) {
-		$data = Chat::where(['to_id' => $req->userInfo->id, 'is_read' => 0])->count();
+//		$data = Chat::where(['to_id' => $req->userInfo->id, 'is_read' => 0])->count();
+		$data = DB::table('chat')->join('contact', 'chat.from_id', '=', 'contact.to_uid')
+			->where(['chat.to_id' => $req->userInfo->id, 'chat.is_read' => 0, 'contact.from_uid' => $req->userInfo->id])->count();
 		return api('00', $data);
 	}
 
@@ -160,13 +186,13 @@ class ChatController {
 	/**
 	 * @api
 	 * @name    已阅新聊天消息
-	 * @url     /api/chat/readChat
+	 * @url     /api/chat/read
 	 * @method  POST
 	 * @desc
 	 * @param   id          string  [必填]  用户ID
 	 * @param   type        string  [选填]  类型 0用户-用户 1用户-群组 2群组-用户 默认0
 	 */
-	public function readChat(Request $req) {
+	public function read(Request $req) {
 		$form = $req->all();
 		// 验证
 		$valid = CommonValidator::handle($form, 'id');
@@ -176,8 +202,8 @@ class ChatController {
 
 		$type = isset($form['type']) ? $form['type'] : 0;
 		// 将与该用户的聊天记录改为已读
-		if (Chat::where(['from_id' => $form['id'], 'to_id' => $req->userInfo->id, 'type' => $type, 'status' => 1, 'is_read' => 0])->update(['is_read' => 1])) {
-			return api('00');
+		if ($data = Chat::where(['from_id' => $form['id'], 'to_id' => $req->userInfo->id, 'type' => $type, 'status' => 1, 'is_read' => 0])->update(['is_read' => 1])) {
+			return api('00', $data);
 		}
 		return error('500');
 	}

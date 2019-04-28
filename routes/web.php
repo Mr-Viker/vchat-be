@@ -53,8 +53,9 @@ Route::group(['namespace' => 'Api', 'prefix' => 'api', 'middleware' => ["CORS", 
 		Route::any('/chat/list', 'ChatController@list');              // 聊天列表
 		Route::any('/chat/send', 'ChatController@send');              // 发送消息
 		Route::any('/chat/getNewChatNum', 'ChatController@getNewChatNum');        // 获取最新未读消息数
-		Route::any('/chat/getNewChat', 'ChatController@getNewChat');        // 获取最新未读消息
-		Route::any('/chat/readChat', 'ChatController@readChat');        // 已阅新聊天消息
+//		Route::any('/chat/getNewChat', 'ChatController@getNewChat');        // 获取最新未读消息
+		Route::any('/chat/read', 'ChatController@read');        // 已阅新聊天消息
+		Route::any('/chat/record', 'ChatController@record');            // 聊天记录
 
 	});
 });
