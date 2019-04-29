@@ -232,6 +232,11 @@ class ContactController {
 
 		// 删除好友
 		if ($contact->delete()) {
+			// 如果都删除了 则把聊天记录也删了
+			if (Contact::where(['from_uid' => $form['id'], 'to_uid' => $req->userInfo->id])->count() <= 0) {
+				Chat::where(['from_id' => $req->userInfo->id, 'to_id' => $form['id']])->delete();
+				Chat::where(['from_id' => $form['id'], 'to_id' => $req->userInfo->id])->delete();
+			}
 			return api('00');
 		}
 		return error('500');

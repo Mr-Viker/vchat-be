@@ -10,6 +10,7 @@ namespace App\Http\Controllers\Api;
 
 
 use App\Models\Chat;
+use App\Models\Contact;
 use App\Models\User;
 use App\Validators\CommonValidator;
 use GatewayClient\Gateway;
@@ -91,8 +92,9 @@ class ChatController {
 			return error('01', $valid->first());
 		}
 
-		$temp = Chat::where(['from_id' => $form['id'], 'to_id' => $req->userInfo->id]);
-		$paginate = Chat::where(['from_id' => $req->userInfo->id, 'to_id' => $form['id']])->union($temp)->orderBy('created_at', 'desc')->paginate($req->pageNum);
+		$paginate = Chat::where(['from_id' => $req->userInfo->id, 'to_id' => $form['id']])
+			->union(Chat::where(['from_id' => $form['id'], 'to_id' => $req->userInfo->id]))
+			->orderBy('created_at', 'desc')->paginate($req->pageNum);
 		$data = $paginate->items();
 		$addition = getAddition($paginate);
 		return api('00', $data, $addition);
@@ -117,6 +119,11 @@ class ChatController {
 			return error('01', $valid->first());
 		}
 
+		// 如果对方删了你 则发送不了
+		if (Contact::where(['from_uid' => $form['id'], 'to_uid' => $req->userInfo->id])->count() <= 0) {
+			return error('01', '你不是对方的好友了哦');
+		}
+
 		// 保存消息
 		$chat = new Chat();
 		$chat->from_id = $req->userInfo->id;
@@ -128,7 +135,7 @@ class ChatController {
 		if ($chat->save()) {
 			// 如果对方在线则发送给对方
 			if (Gateway::isUidOnline($form['id'])) {
-				$data = ['username' => $req->userInfo->username, 'avatar' => $req->userInfo->avatar, 'uid' => $req->userInfo->id, 'content' => $chat->content, 'created_at' => $chat->created_at->toDateTimeString(), 'is_accept' => 1, 'is_read' => 0, 'new_chat_num' => 1, 'type' => 0];
+				$data = ['type' => 'chat', 'data' => ['username' => $req->userInfo->username, 'avatar' => $req->userInfo->avatar, 'uid' => $req->userInfo->id, 'from_id' => $req->userInfo->id, 'content' => $chat->content, 'created_at' => $chat->created_at->toDateTimeString(), 'is_accept' => 1, 'is_read' => 0, 'new_chat_num' => 1, 'type' => 0]];
 				Gateway::sendToUid($form['id'], json_encode($data));
 			}
 			return api('00', $chat);
