@@ -23,10 +23,12 @@ Route::group(['namespace' => 'Api', 'prefix' => 'api', 'middleware' => ["CORS", 
 
 	Route::any('/sms', 'SmsController@sendSms');                   // 短信发送接口
 	Route::any('/config', 'CommonController@config');              // 配置信息
+	Route::any('/upload', 'CommonController@upload');              // 上传头像
 
 	Route::any('/user/register', 'UserController@register');       // 注册
 	Route::any('/user/login', 'UserController@login');             // 登录
 	Route::any('/user/forgetPassword', 'UserController@forgetPassword'); // 忘记密码
+	Route::any('/user/avatar', 'UserController@avatar');           // 获取头像
 
 
 

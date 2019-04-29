@@ -50,6 +50,8 @@ class UserController extends Controller
 		$user->vchat_id = getVChatID();
 		$user->phone = $form['phone'];
 		$user->password = Hash::make($form['password']);
+		isset($form['avatar']) ? $user->avatar = $form['avatar'] : '';
+
 		if ($user->save()) {
 			return api('00', ['id' => $user->id]);
 		}
@@ -330,5 +332,27 @@ class UserController extends Controller
 		}
 		return api("00");
 	}
+
+
+  /**
+   * @api
+   * @name    获取头像
+   * @url     /api/user/avatar
+   * @method  POST
+   * @desc
+   * @param   phone      string  [必填]  手机号
+   */
+  public function avatar(Request $req) {
+    $form = $req->all();
+    // 验证
+    $valid = CommonValidator::handle($form, 'phone');
+    if (true !== $valid) {
+      return error('01', $valid->first());
+    }
+    // 查找用户
+    $data = User::select('avatar')->where('phone', $form['phone'])->first();
+    return api('00', $data);
+  }
+
 
 }

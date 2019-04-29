@@ -19,4 +19,28 @@ class CommonController extends Controller {
     return api('00', $data);
   }
 
+
+  /**
+   * @api
+   * @name    上传头像
+   * @url     /api/upload
+   * @method  POST
+   * @desc
+   * @param   avatar       object  [必填]  头像名
+   */
+  public function upload(Request $req) {
+    $avatar = $req->file('avatar');
+
+    if (empty($avatar)) {
+      return error('01', '未接收到头像');
+    }
+
+    $fileName = saveFile($avatar);
+    if ($fileName) {
+      return api('00', ['avatar' => $fileName]);
+    }
+    return error('500', '上传头像失败');
+  }
+
+
 }
