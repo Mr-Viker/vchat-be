@@ -92,6 +92,19 @@ if (!function_exists('saveFile')) {
 	}
 }
 
+// 存储多图
+if (!function_exists('saveMultiFile')) {
+	function saveMultiFile($files) {
+		if (is_array($files)) {
+			foreach ($files as $file) {
+				$path[] = saveFile($file);
+			}
+		} else {
+			$path = saveFile($files);
+		}
+		return $path;
+	}
+}
 
 //格式化聊天列表 只需要获取和每个聊天对象的第一条消息即可
 //去重并根据created_at排序

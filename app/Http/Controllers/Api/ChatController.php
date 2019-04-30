@@ -87,7 +87,7 @@ class ChatController {
 	public function record(Request $req) {
 		$form = $req->all();
 		// 验证
-		$valid = CommonValidator::handle($form, 'record');
+		$valid = CommonValidator::handle($form, 'idList');
 		if (true !== $valid) {
 			return error('01', $valid->first());
 		}

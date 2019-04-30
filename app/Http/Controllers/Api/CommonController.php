@@ -22,24 +22,29 @@ class CommonController extends Controller {
 
   /**
    * @api
-   * @name    上传头像
+   * @name    上传图片
    * @url     /api/upload
    * @method  POST
    * @desc
-   * @param   avatar       object  [必填]  头像名
+   * @param   file       object  [必填]  头像名
    */
   public function upload(Request $req) {
-    $avatar = $req->file('avatar');
+    $file = $req->file('file');
 
-    if (empty($avatar)) {
-      return error('01', '未接收到头像');
+    if (empty($file)) {
+      return error('01', '未接收到图片');
     }
 
-    $fileName = saveFile($avatar);
+	  if (is_array($file)) {
+		  $fileName = saveMultiFile($file);
+	  } else {
+	  	$name = saveFile($file);
+	  	$fileName = [$name];
+	  }
     if ($fileName) {
-      return api('00', ['avatar' => $fileName]);
+      return api('00', $fileName);
     }
-    return error('500', '上传头像失败');
+    return error('500', '上传失败');
   }
 
 

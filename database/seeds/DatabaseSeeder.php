@@ -24,7 +24,8 @@ class DatabaseSeeder extends Seeder {
 //			$v->addContact()->attach($user, ['content' => '我是' . $user->username]);
 //		});
 
-    factory(Chat::class, 30)->create();
+//    factory(Chat::class, 30)->create();
 
+    factory(\App\Models\Moment::class, 31)->create();
 	}
 }

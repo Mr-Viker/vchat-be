@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Contact;
+use App\Models\Moment;
 use App\Models\Sms;
 use App\Models\User;
 use App\Validators\CommonValidator;
@@ -53,6 +54,11 @@ class UserController extends Controller
 		isset($form['avatar']) ? $user->avatar = $form['avatar'] : '';
 
 		if ($user->save()) {
+			// 新用户默认发布一条新记忆
+			$moment = new Moment();
+			$moment->uid = $user->id;
+			$moment->content = '您出生了';
+			$moment->save();
 			return api('00', ['id' => $user->id]);
 		}
 		return error('500');
