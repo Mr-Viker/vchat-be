@@ -14,9 +14,11 @@ use Faker\Generator as Faker;
 |
 */
 
-$factory->define(App\Models\Moment::class, function (Faker $faker) {
+$factory->define(App\Models\Comment::class, function (Faker $faker) {
 	return [
-		'uid' => 3,
-    'content' => $faker->text,
+    'mid' => 32,
+    'from_uid' => rand(1, 100),
+    'to_uid' => rand(0, 100),
+    'content' => $faker->sentence,
 	];
 });

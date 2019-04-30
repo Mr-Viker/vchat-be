@@ -26,6 +26,10 @@ class DatabaseSeeder extends Seeder {
 
 //    factory(Chat::class, 30)->create();
 
-    factory(\App\Models\Moment::class, 31)->create();
+    factory(\App\Models\Moment::class, 40)->create();
+
+//    factory(\App\Models\Comment::class, 30)->create();
+//    factory(\App\Models\Like::class, 50)->create();
+
 	}
 }

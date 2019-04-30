@@ -9,6 +9,7 @@
 namespace App\Http\Controllers\Api;
 
 
+use App\Models\Like;
 use App\Models\Moment;
 use App\Validators\CommonValidator;
 use Illuminate\Http\Request;
@@ -60,9 +61,13 @@ class MomentController {
 			return error('01', $valid->first());
 		}
 
-		$data = Moment::find($form['id']);
-		if ($data) {
-			return api('00', $data);
+		$moment = Moment::where('id', $form['id'])->with('user:id,username,avatar')->first();
+    if ($moment) {
+      $moment->imgs = json_decode($moment->imgs, true);
+		  $moment->like_num = $moment->like()->count();
+		  $moment->comment_num = $moment->comment()->count();
+		  $moment->is_like = Like::where(['mid' => $form['id'], 'uid' => $req->userInfo->id])->count();
+			return api('00', $moment);
 		}
 		return error('500');
 	}

@@ -62,6 +62,13 @@ Route::group(['namespace' => 'Api', 'prefix' => 'api', 'middleware' => ["CORS", 
 		Route::any('/moment/info', 'MomentController@info');              // 记忆详情
 		Route::any('/moment/add', 'MomentController@add');              // 新增记忆
 		Route::any('/moment/del', 'MomentController@del');              // 删除记忆
+
+    Route::any('/like/add', 'LikeController@add');              // 点赞记忆
+    Route::any('/like/del', 'LikeController@del');              // 取消点赞
+
+    Route::any('/comment/list', 'CommentController@list');            // 评论列表
+    Route::any('/comment/add', 'CommentController@add');              // 新增评论
+    Route::any('/comment/del', 'CommentController@del');              // 删除评论
 	});
 });
 

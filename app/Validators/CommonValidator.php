@@ -86,6 +86,7 @@ class CommonValidator extends BaseValidator {
     'clientId' => ['clientId'],
 	  'edit' => ['id', 'status'],
 	  'msg' => ['id', 'content'],
+	  'comment' => ['id', 'content'],
 
 	  // moment
 	  'content' => ['content'],

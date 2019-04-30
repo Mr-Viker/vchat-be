@@ -14,9 +14,9 @@ use Faker\Generator as Faker;
 |
 */
 
-$factory->define(App\Models\Moment::class, function (Faker $faker) {
+$factory->define(App\Models\Like::class, function (Faker $faker) {
 	return [
-		'uid' => 3,
-    'content' => $faker->text,
+    'mid' => 32,
+    'uid' => rand(1, 100),
 	];
 });
