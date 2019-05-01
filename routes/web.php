@@ -59,6 +59,8 @@ Route::group(['namespace' => 'Api', 'prefix' => 'api', 'middleware' => ["CORS", 
 		Route::any('/chat/record', 'ChatController@record');            // 聊天记录
 
 		Route::any('/moment/list', 'MomentController@list');              // 记忆列表
+    Route::any('/moment/plaza', 'MomentController@plaza');              // 广场记忆列表
+    Route::any('/moment/friend', 'MomentController@friend');            // 好友记忆列表
 		Route::any('/moment/info', 'MomentController@info');              // 记忆详情
 		Route::any('/moment/add', 'MomentController@add');              // 新增记忆
 		Route::any('/moment/del', 'MomentController@del');              // 删除记忆

@@ -27,5 +27,8 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
 		return $this->belongsToMany(User::class, 'add_contact', 'to_uid', 'from_uid')->withPivot('content', 'status')->withTimestamps();
 	}
 
+  public function friendMoment() {
+	  return $this->hasManyThrough(Moment::class, Contact::class, 'from_uid', 'uid', 'id', 'to_uid');
+  }
 
 }

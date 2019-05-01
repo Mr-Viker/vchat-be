@@ -11,8 +11,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Models\Like;
 use App\Models\Moment;
+use App\Models\User;
 use App\Validators\CommonValidator;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class MomentController {
 
@@ -36,6 +38,61 @@ class MomentController {
 
 		$uid = isset($form['id']) ? $form['id'] : $req->userInfo->id;
 		$paginate = Moment::where('uid', $uid)->orderBy('created_at', 'desc')->paginate($req->pageNum);
+		$data = $paginate->items();
+		$addition = getAddition($paginate);
+		foreach ($data as &$item) {
+			$item['imgs'] = json_decode($item['imgs'], true);
+		}
+		return api('00', $data, $addition);
+	}
+
+
+	/**
+	 * @api
+	 * @name    广场记忆列表
+	 * @url     /api/moment/plaza
+	 * @method  POST
+	 * @desc
+	 * @param   page     string  [选填]  当前页数 不传默认1
+	 * @param   pageNum  string  [选填]  每页显示数量 不传默认15
+	 */
+	public function plaza(Request $req) {
+		$form = $req->all();
+		// 验证
+		$valid = CommonValidator::handle($form, 'list');
+		if (true !== $valid) {
+			return error('01', $valid->first());
+		}
+
+		$paginate = Moment::with('user:id,username,avatar')->orderBy(DB::raw('rand()'))->paginate($req->pageNum);
+		$data = $paginate->items();
+		$addition = getAddition($paginate);
+		foreach ($data as &$item) {
+			$item['imgs'] = json_decode($item['imgs'], true);
+		}
+		return api('00', $data, $addition);
+	}
+
+
+	/**
+	 * @api
+	 * @name    好友记忆列表
+	 * @url     /api/moment/friend
+	 * @method  POST
+	 * @desc
+	 * @param   page     string  [选填]  当前页数 不传默认1
+	 * @param   pageNum  string  [选填]  每页显示数量 不传默认15
+	 */
+	public function friend(Request $req) {
+		$form = $req->all();
+		// 验证
+		$valid = CommonValidator::handle($form, 'list');
+		if (true !== $valid) {
+			return error('01', $valid->first());
+		}
+
+    $user = User::find($req->userInfo->id);
+		$paginate = $user->friendMoment()->with('user:id,username,avatar')->orderBy('moment.created_at', 'desc')->paginate($req->pageNum);
 		$data = $paginate->items();
 		$addition = getAddition($paginate);
 		foreach ($data as &$item) {
