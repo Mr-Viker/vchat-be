@@ -68,7 +68,10 @@ class MomentController {
 		$data = $paginate->items();
 		$addition = getAddition($paginate);
 		foreach ($data as &$item) {
-			$item['imgs'] = json_decode($item['imgs'], true);
+      $item->like_num = $item->like()->count();
+		  $item->comment_num = $item->comment()->count();
+		  $item->is_like = Like::where(['mid' => $item->id, 'uid' => $req->userInfo->id])->count();
+			$item->imgs = json_decode($item->imgs, true);
 		}
 		return api('00', $data, $addition);
 	}
@@ -96,7 +99,10 @@ class MomentController {
 		$data = $paginate->items();
 		$addition = getAddition($paginate);
 		foreach ($data as &$item) {
-			$item['imgs'] = json_decode($item['imgs'], true);
+      $item->like_num = $item->like()->count();
+      $item->comment_num = $item->comment()->count();
+      $item->is_like = Like::where(['mid' => $item->id, 'uid' => $req->userInfo->id])->count();
+			$item->imgs = json_decode($item->imgs, true);
 		}
 		return api('00', $data, $addition);
 	}

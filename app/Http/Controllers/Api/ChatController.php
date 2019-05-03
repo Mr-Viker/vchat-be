@@ -58,11 +58,11 @@ class ChatController {
     }
 
     // 按时间顺序获取和聊过天的用户的记录
-    $acceptData = Chat::select('from_id as uid', 'content', 'type', 'is_read', 'created_at')->where('to_id', $req->userInfo->id)->orderBy('created_at', 'desc')->get()->map(function($item) {
+    $acceptData = Chat::select('from_id as uid', 'content', 'content_type', 'type', 'is_read', 'is_del', 'created_at')->where('to_id', $req->userInfo->id)->orderBy('created_at', 'desc')->get()->map(function($item) {
       $item->is_accept = 1;
       return $item;
     })->toArray();
-    $sendData = Chat::select('to_id as uid', 'content', 'type', 'is_read', 'created_at')->where('from_id', $req->userInfo->id)->orderBy('created_at', 'desc')->get()->map(function($item) {
+    $sendData = Chat::select('to_id as uid', 'content', 'content_type', 'type', 'is_read', 'is_del', 'created_at')->where('from_id', $req->userInfo->id)->orderBy('created_at', 'desc')->get()->map(function($item) {
       $item->is_accept = 0;
       return $item;
     })->toArray();
@@ -92,8 +92,8 @@ class ChatController {
 			return error('01', $valid->first());
 		}
 
-		$paginate = Chat::where(['from_id' => $req->userInfo->id, 'to_id' => $form['id']])
-			->union(Chat::where(['from_id' => $form['id'], 'to_id' => $req->userInfo->id]))
+		$paginate = Chat::where([['from_id', '=', $req->userInfo->id], ['to_id', '=', $form['id']], ['is_del', '!=', $req->userInfo->id]])
+			->union(Chat::where([['from_id', '=', $form['id']], ['to_id', '=', $req->userInfo->id], ['is_del', '!=', $req->userInfo->id]]))
 			->orderBy('created_at', 'desc')->paginate($req->pageNum);
 		$data = $paginate->items();
 		$addition = getAddition($paginate);
@@ -109,6 +109,7 @@ class ChatController {
 	 * @desc
 	 * @param   id          string  [必填]  接收消息的用户ID
 	 * @param   content     string  [必填]  消息内容
+	 * @param   content_type    string  [必填]  消息内容类型 0文字 1图片 默认0
 	 * @param   type        string  [选填]  类型 0用户-用户 1用户-群组 2群组-用户 默认0
 	 */
 	public function send(Request $req) {
@@ -129,13 +130,14 @@ class ChatController {
 		$chat->from_id = $req->userInfo->id;
 		$chat->to_id = $form['id'];
 		$chat->content = $form['content'];
+		$chat->content_type = isset($form['content_type']) ? $form['content_type'] : 0;
 		$chat->type = isset($form['type']) ? $form['type'] : 0;
 		$chat->status = 1;
 
 		if ($chat->save()) {
 			// 如果对方在线则发送给对方
 			if (Gateway::isUidOnline($form['id'])) {
-				$data = ['type' => 'chat', 'data' => ['username' => $req->userInfo->username, 'avatar' => $req->userInfo->avatar, 'uid' => $req->userInfo->id, 'from_id' => $req->userInfo->id, 'content' => $chat->content, 'created_at' => $chat->created_at->toDateTimeString(), 'is_accept' => 1, 'is_read' => 0, 'new_chat_num' => 1, 'type' => 0]];
+				$data = ['type' => 'chat', 'data' => ['username' => $req->userInfo->username, 'avatar' => $req->userInfo->avatar, 'uid' => $req->userInfo->id, 'from_id' => $req->userInfo->id, 'content' => $chat->content, 'content_type' => $chat->content_type, 'created_at' => $chat->created_at->toDateTimeString(), 'is_accept' => 1, 'is_read' => 0, 'new_chat_num' => 1, 'type' => 0]];
 				Gateway::sendToUid($form['id'], json_encode($data));
 			}
 			return api('00', $chat);
@@ -183,6 +185,51 @@ class ChatController {
 		}
 		return error('500');
 	}
+
+
+  /**
+   * @api
+   * @name    删除聊天记录
+   * @url     /api/chat/del
+   * @method  POST
+   * @desc
+   * @param   id          string  [必填]  对方用户ID
+   */
+  public function del(Request $req) {
+    $form = $req->all();
+    // 验证
+    $valid = CommonValidator::handle($form, 'id');
+    if (true !== $valid) {
+      return error('01', $valid->first());
+    }
+
+    // 查看是否有和该用户的聊天消息
+    $time = date('Y-m-d H:i:s', time());
+    $chat = Chat::where(['from_id' => $req->userInfo->id, 'to_id' => $form['id'], ['is_del', '!=', $req->userInfo->id], ['created_at', '<', $time]])
+      ->union(Chat::where(['from_id' => $form['id'], 'to_id' => $req->userInfo->id, ['is_del', '!=', $req->userInfo->id], ['created_at', '<', $time]]))
+      ->get();
+    if (empty($chat)) {
+      return error('01', '没有和对方的聊天记录哦');
+    }
+
+    DB::beginTransaction();
+    try {
+      foreach ($chat as $item) {
+        // 如果is_del是对方的id 则表示对方已经删除了 所以可以把该条记录删除了 否则将is_del赋值为当前用户id
+        if ($item->is_del == $form['id']) {
+          $item->delete();
+        } else {
+          $item->is_del = $req->userInfo->id;
+          $item->save();
+        }
+      }
+      DB::commit();
+      return api('00');
+    } catch (\Exception $e) {
+      DB::rollBack();
+      return error('500', $e->getMessage());
+    }
+  }
 
 
 }

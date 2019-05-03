@@ -108,6 +108,7 @@ if (!function_exists('saveMultiFile')) {
 
 //格式化聊天列表 只需要获取和每个聊天对象的第一条消息即可
 //去重并根据created_at排序
+//$id: 自己的用户id
 if (!function_exists('formatChatList')) {
   function formatChatList($data, $id)
   {
@@ -133,13 +134,16 @@ if (!function_exists('formatChatList')) {
     array_multisort($sortKey, SORT_DESC, $res);
 
     foreach ($res as $k => $v) {
-      // 获取用户信息
-      $user = User::select('username', 'avatar')->where('id', $v['uid'])->first()->toArray();
-      $res[$k] = array_merge($v, $user);
-      // 如果对方是自己的好友 才显示该聊天记录
-	    if (\App\Models\Contact::where(['from_uid' => $id, 'to_uid' => $v['uid']])->count() > 0) {
-		    $result[] = $res[$k];
-	    }
+      // 如果自己删除了和该用户的聊天记录 则不显示
+      if ($res[$k]['is_del'] != $id) {
+        // 获取用户信息
+        $user = User::select('username', 'avatar')->where('id', $v['uid'])->first()->toArray();
+        $res[$k] = array_merge($v, $user);
+        // 如果对方是自己的好友 才显示该聊天记录
+        if (\App\Models\Contact::where(['from_uid' => $id, 'to_uid' => $v['uid']])->count() > 0) {
+          $result[] = $res[$k];
+        }
+      }
     }
     return $result;
   }
