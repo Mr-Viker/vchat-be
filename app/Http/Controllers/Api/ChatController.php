@@ -131,13 +131,14 @@ class ChatController {
 		$chat->to_id = $form['id'];
 		$chat->content = $form['content'];
 		$chat->content_type = isset($form['content_type']) ? $form['content_type'] : 0;
+		$chat->duration = isset($form['duration']) ? $form['duration'] : 0;
 		$chat->type = isset($form['type']) ? $form['type'] : 0;
 		$chat->status = 1;
 
 		if ($chat->save()) {
 			// 如果对方在线则发送给对方
 			if (Gateway::isUidOnline($form['id'])) {
-				$data = ['type' => 'chat', 'data' => ['username' => $req->userInfo->username, 'avatar' => $req->userInfo->avatar, 'uid' => $req->userInfo->id, 'from_id' => $req->userInfo->id, 'content' => $chat->content, 'content_type' => $chat->content_type, 'created_at' => $chat->created_at->toDateTimeString(), 'is_accept' => 1, 'is_read' => 0, 'new_chat_num' => 1, 'type' => 0]];
+				$data = ['type' => 'chat', 'data' => ['username' => $req->userInfo->username, 'avatar' => $req->userInfo->avatar, 'uid' => $req->userInfo->id, 'from_id' => $req->userInfo->id, 'content' => $chat->content, 'content_type' => $chat->content_type, 'duration' => $chat->duration, 'created_at' => $chat->created_at->toDateTimeString(), 'is_accept' => 1, 'is_read' => 0, 'new_chat_num' => 1, 'type' => 0]];
 				Gateway::sendToUid($form['id'], json_encode($data));
 			}
 			return api('00', $chat);

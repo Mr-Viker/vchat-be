@@ -32,7 +32,7 @@ class CommonController extends Controller {
     $file = $req->file('file');
 
     if (empty($file)) {
-      return error('01', '未接收到图片');
+      return error('01', '未接收到文件');
     }
 
 	  if (is_array($file)) {
