@@ -28,6 +28,13 @@ class CommonValidator extends BaseValidator {
 
     'page' => ['sometimes', 'numeric'],
     'pageNum' => ['sometimes', 'numeric'],
+
+	  // wx
+	  'signature' => ['required'],
+	  'timestamp' => ['required'],
+	  'nonce' => ['required'],
+	  'echostr' => ['required'],
+
   ];
 
   protected $msgs =[
@@ -69,6 +76,13 @@ class CommonValidator extends BaseValidator {
 
     'page.numeric' => '页数格式错误',
     'pageNum.numeric' => '每页显示数量格式错误',
+
+	  // wx
+	  'signature.required' => '微信加密签名不能为空',
+	  'timestamp.required' => '时间戳不能为空',
+	  'nonce.required' => '随机数不能为空',
+	  'echostr.required' => '随机字符串不能为空',
+
   ];
 
   protected $scenes = [
@@ -100,6 +114,9 @@ class CommonValidator extends BaseValidator {
     'pay' => ['payType', 'money'],
 
     'list' => ['page', 'pageNum'],
+
+	  // wx
+	  'wx' => ['signature', 'timestamp', 'nonce', 'echostr'],
   ];
 
 }

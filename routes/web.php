@@ -30,6 +30,7 @@ Route::group(['namespace' => 'Api', 'prefix' => 'api', 'middleware' => ["CORS", 
 	Route::any('/user/forgetPassword', 'UserController@forgetPassword'); // 忘记密码
 	Route::any('/user/avatar', 'UserController@avatar');           // 获取头像
 
+	Route::any('/wx', 'WXController@validate');           // 获取头像
 
 
 	/**
