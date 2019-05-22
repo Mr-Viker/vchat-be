@@ -17,7 +17,7 @@ class WXController {
 	/**
 	 * @api
 	 * @name    验证微信服务器
-	 * @url     /api/wx
+	 * @url     /wx
 	 * @method  POST
 	 * @desc
 	 * @param   signature     string  [必填]  微信加密签名
@@ -33,7 +33,8 @@ class WXController {
 			return error('01', $valid->first());
 		}
 
-		$data = [$form['timestamp'], $form['nonce']];
+		$token = 'vchat';
+		$data = [$form['timestamp'], $form['nonce'], $token];
 		sort($data, SORT_STRING);
 		$dataStr = sha1(implode($data));
 

@@ -30,8 +30,6 @@ Route::group(['namespace' => 'Api', 'prefix' => 'api', 'middleware' => ["CORS", 
 	Route::any('/user/forgetPassword', 'UserController@forgetPassword'); // 忘记密码
 	Route::any('/user/avatar', 'UserController@avatar');           // 获取头像
 
-	Route::any('/wx', 'WXController@validate');           // 获取头像
-
 
 	/**
 	 * 需要登录状态的路由写这里
@@ -76,3 +74,5 @@ Route::group(['namespace' => 'Api', 'prefix' => 'api', 'middleware' => ["CORS", 
 	});
 });
 
+
+Route::any('/wx', 'Api\WXController@validate');           // 微信认证
