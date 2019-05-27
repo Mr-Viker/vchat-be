@@ -76,7 +76,7 @@ Route::group(['namespace' => 'Api', 'prefix' => 'api', 'middleware' => ["CORS", 
 
 
 Route::group(['prefix' => 'wx', 'namespace' => 'WX'], function () {
-	Route::any('/', 'CommonController@validate');           // 微信认证
+	Route::any('/', 'CommonController@index');           // 微信认证
 	Route::any('/getAccessToken', 'CommonController@getAccessToken');           // 获取access_token
 	Route::any('/menu/create', 'MenuController@create');           // 自定义公众号菜单
 });
