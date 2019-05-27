@@ -22,9 +22,9 @@ class MenuController {
 	 * @desc
 	 */
 	public function create() {
-		$accessToken = Config::where('key', 'access_token')->pluck('value') ?: WX::getAccessToken();
+		$accessToken = Config::where('key', 'access_token')->pluck('value');
 		if (!$accessToken) {
-			return error('500', '获取access_token失败');
+			return error('500', '无法获取access_token');
 		}
 
 		$url = "https://api.weixin.qq.com/cgi-bin/menu/create?access_token={$accessToken}";

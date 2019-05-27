@@ -19,19 +19,19 @@ class WX {
 		$config = Config::getConfig();
 		$url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={$config['appid']}&secret={$config['secret']}";
 
-		$accessToken = req($url, 'GET');
+		$data = req($url, 'GET');
 		$record = Config::where('key', 'access_token')->first();
 		if ($record) {
-			$record->value = $accessToken;
+			$record->value = $data['access_token'];
 		} else {
 			$record = new Config();
 			$record->key = 'access_token';
-			$record->value = $accessToken;
+			$record->value = $data['access_token'];
 			$record->remark = '微信调用各接口凭证';
 		}
 
 		if ($record->save()) {
-			return $accessToken;
+			return $data['access_token'];
 		}
 		return false;
 	}
