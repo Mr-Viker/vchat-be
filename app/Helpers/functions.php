@@ -31,6 +31,28 @@ if (!function_exists('error')) {
 }
 
 
+// curl请求
+if (!function_exists('req')) {
+	function req($url, $method, $data = '') {
+		$headerArray =array("Content-type:application/json;charset='utf-8'","Accept:application/json");
+		$curl = curl_init();
+		curl_setopt($curl, CURLOPT_URL, $url);
+		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
+		curl_setopt($curl, CURLOPT_SSL_VERIFYHOST,FALSE);
+		curl_setopt($curl,CURLOPT_HTTPHEADER, $headerArray);
+		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+		if (strtoupper($method) == 'POST') {
+			$data  = json_encode($data);
+			curl_setopt($curl, CURLOPT_POST, 1);
+			curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
+		}
+		$output = json_decode(curl_exec($curl), true);
+		curl_close($curl);
+		return $output;
+	}
+}
+
+
 // 随机生成订单号
 if (!function_exists('getOrderNo')) { 
   function getOrderNo() { 

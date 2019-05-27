@@ -30,6 +30,9 @@ class Config extends Model
 			'sms_secret' => '3ea296e94a8695fde292323b52d72041',
 			'sms_signName' => '拼团验证',
 			'sms_templateCode' => 'SMS_60475099',
+			// 微信
+			'appid' => 'wx7b4df9dc23ccfc07',
+			'secret' => 'c3171ce60cdc1c3eeb09efa7e511866d',
 		];
 
 		Config::all()->map(function($item) use (&$config) {

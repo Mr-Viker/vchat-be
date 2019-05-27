@@ -1,6 +1,6 @@
 <?php
 /**
- * WXController
+ * CommonController
  * User: Viker
  * Date: 2019/5/22 16:41
  */
@@ -9,10 +9,12 @@
 namespace App\Http\Controllers\Api;
 
 
+use App\Models\Config;
+use App\Models\WX;
 use App\Validators\CommonValidator;
 use Illuminate\Http\Request;
 
-class WXController {
+class CommonController {
 
 	/**
 	 * @api
@@ -33,7 +35,7 @@ class WXController {
 			return error('01', $valid->first());
 		}
 
-		$token = 'vchat';
+		$token = Config::where('key', 'wx_token')->pluck('value') ?: 'vchat';
 		$data = [$form['timestamp'], $form['nonce'], $token];
 		sort($data, SORT_STRING);
 		$dataStr = sha1(implode($data));
@@ -42,6 +44,22 @@ class WXController {
 			return $form['echostr'];
 		}
 		return 'fail';
+	}
+
+
+	/**
+	 * @api
+	 * @name    获取access_token
+	 * @url     /wx/getAccessToken
+	 * @method  GET
+	 * @desc
+	 */
+	public function getAccessToken() {
+		$accessToken = WX::getAccessToken();
+		if ($accessToken) {
+			return api('00', $accessToken);
+		}
+		return error('500', '获取access_token失败');
 	}
 
 }
