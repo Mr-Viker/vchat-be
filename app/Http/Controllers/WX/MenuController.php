@@ -22,7 +22,7 @@ class MenuController {
 	 * @desc
 	 */
 	public function create() {
-		$accessToken = Config::where('key', 'access_token')->pluck('value');
+		$accessToken = Config::where('key', 'access_token')->value('value');
 		if (!$accessToken) {
 			return error('500', '无法获取access_token');
 		}

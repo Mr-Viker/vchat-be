@@ -35,7 +35,7 @@ class CommonController {
 			return error('01', $valid->first());
 		}
 
-		$token = Config::where('key', 'wx_token')->pluck('value') ?: 'vchat';
+		$token = Config::where('key', 'wx_token')->value('value') ?: 'vchat';
 		$data = [$form['timestamp'], $form['nonce'], $token];
 		sort($data, SORT_STRING);
 		$dataStr = sha1(implode($data));
